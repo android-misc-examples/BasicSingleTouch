@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:weightSum="100"
+    android:orientation="vertical"
+    tools:context=".MainActivity">
+
+    <RelativeLayout
+        android:id="@+id/relativelayout1"
+        android:layout_weight="90"
+        android:layout_width="fill_parent"
+        android:layout_height="0dp">
+
+    </RelativeLayout>
+    <Button
+        android:layout_width="fill_parent"
+        android:layout_height="0dp"
+        android:text="Click Here to clear drawing "
+        android:id="@+id/button"
+        android:onClick="resetPath2"
+        android:layout_weight="10" />
+
+</LinearLayout>
