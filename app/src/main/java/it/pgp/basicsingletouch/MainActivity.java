@@ -12,9 +12,18 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.RelativeLayout;
+import android.widget.Toast;
 
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.Socket;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+
+import it.pgp.basicsingletouch.utils.TLSSocketFactoryCompat;
 
 /**
  * Web source:
@@ -35,8 +44,8 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        relativeLayout = (RelativeLayout) findViewById(R.id.relativelayout1);
-        button = (Button) findViewById(R.id.button);
+        relativeLayout = findViewById(R.id.relativelayout1);
+        button = findViewById(R.id.button);
         view = new SketchSheetView(MainActivity.this);
         paint = new Paint();
         path2 = new Path();
@@ -55,6 +64,26 @@ public class MainActivity extends Activity {
         path2.reset();
         view.invalidate();
         System.out.println("RESET");
+    }
+
+    public void testTls12NoCert(View unused) {
+        final String s = ((EditText)findViewById(R.id.tlsRemoteHost)).getText().toString();
+        new Thread(()->{
+            try {
+                TLSSocketFactoryCompat f = new TLSSocketFactoryCompat("");
+                Socket clientSocket = f.createSocket(s, 11111);
+                InputStream i = clientSocket.getInputStream();
+                OutputStream o = clientSocket.getOutputStream();
+                o.write(new byte[]{0x1F});
+                clientSocket.shutdownInput();
+                clientSocket.shutdownOutput();
+                runOnUiThread(()->Toast.makeText(this, "TLS connection test OK for host:"+s, Toast.LENGTH_SHORT).show());
+            }
+            catch (Exception e) {
+                e.printStackTrace();
+                runOnUiThread(()->Toast.makeText(this, "TLS connection test failed for host:"+s, Toast.LENGTH_SHORT).show());
+            }
+        }).start();
     }
 
     public static class DrawingClass {
