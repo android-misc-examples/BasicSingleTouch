@@ -75,8 +75,7 @@ public class MainActivity extends Activity {
                 InputStream i = clientSocket.getInputStream();
                 OutputStream o = clientSocket.getOutputStream();
                 o.write(new byte[]{0x1F});
-                clientSocket.shutdownInput();
-                clientSocket.shutdownOutput();
+                clientSocket.close();
                 runOnUiThread(()->Toast.makeText(this, "TLS connection test OK for host:"+s, Toast.LENGTH_SHORT).show());
             }
             catch (Exception e) {
