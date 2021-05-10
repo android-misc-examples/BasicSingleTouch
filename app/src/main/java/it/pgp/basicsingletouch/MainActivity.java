@@ -19,9 +19,8 @@ import android.widget.Toast;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Calendar;
 
 import it.pgp.basicsingletouch.utils.TLSSocketFactoryCompat;
 
@@ -110,7 +109,7 @@ public class MainActivity extends Activity {
 
     class SketchSheetView extends View {
 
-        private final ArrayList<DrawingClass> DrawingClassArrayList = new ArrayList<>();
+        private final ArrayList<DrawingClass> drawingClassArrayList = new ArrayList<>();
 
         public SketchSheetView(Context context) {
             super(context);
@@ -119,32 +118,74 @@ public class MainActivity extends Activity {
             this.setBackgroundColor(Color.WHITE);
         }
 
+        long startClickTime;
+        float x1,y1,x2,y2,dx,dy;
+
         @Override
         public boolean onTouchEvent(MotionEvent event) {
             DrawingClass pathWithPaint = new DrawingClass();
             canvas.drawPath(path2, paint);
-            if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                path2.moveTo(event.getX(), event.getY());
-                path2.lineTo(event.getX(), event.getY());
-            }
-            else if (event.getAction() == MotionEvent.ACTION_MOVE) {
-                path2.lineTo(event.getX(), event.getY());
-                pathWithPaint.setPath(path2);
-                pathWithPaint.setPaint(paint);
-                DrawingClassArrayList.add(pathWithPaint);
-            }
 
+            int MAX_CLICK_DURATION = 400;
+            int MAX_CLICK_DISTANCE = 5;
+
+
+            switch (event.getAction())
+            {
+                case MotionEvent.ACTION_DOWN: {
+//                    long clickDuration1 = Calendar.getInstance().getTimeInMillis() - startClickTime;
+
+
+                    startClickTime = Calendar.getInstance().getTimeInMillis();
+                    x1 = event.getX();
+                    y1 = event.getY();
+
+                    path2.moveTo(x1, y1);
+                    path2.lineTo(x1, y1);
+
+
+                    break;
+
+                }
+                case MotionEvent.ACTION_UP:
+                {
+                    long clickDuration = Calendar.getInstance().getTimeInMillis() - startClickTime;
+                    x2 = event.getX();
+                    y2 = event.getY();
+                    dx = x2-x1;
+                    dy = y2-y1;
+
+                    if(clickDuration < MAX_CLICK_DURATION && dx < MAX_CLICK_DISTANCE && dy < MAX_CLICK_DISTANCE) {
+                        Toast.makeText(getApplicationContext(), "clicked", Toast.LENGTH_SHORT).show();
+                    }
+
+                }
+                case MotionEvent.ACTION_MOVE:
+
+//                    long clickDuration = Calendar.getInstance().getTimeInMillis() - startClickTime;
+                    x2 = event.getX();
+                    y2 = event.getY();
+                    dx = x2-x1;
+                    dy = y2-y1;
+
+                    path2.lineTo(x2, y2);
+                    pathWithPaint.setPath(path2);
+                    pathWithPaint.setPaint(paint);
+                    drawingClassArrayList.add(pathWithPaint);
+                    break;
+            }
             invalidate();
-            return true;
+
+            return  true;
         }
 
         @Override
         protected void onDraw(Canvas canvas) {
             super.onDraw(canvas);
-            if (DrawingClassArrayList.size() > 0) {
+            if (drawingClassArrayList.size() > 0) {
                 canvas.drawPath(
-                        DrawingClassArrayList.get(DrawingClassArrayList.size() - 1).getPath(),
-                        DrawingClassArrayList.get(DrawingClassArrayList.size() - 1).getPaint());
+                        drawingClassArrayList.get(drawingClassArrayList.size() - 1).getPath(),
+                        drawingClassArrayList.get(drawingClassArrayList.size() - 1).getPaint());
             }
         }
     }
