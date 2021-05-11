@@ -39,7 +39,10 @@ public class NetworkQueue {
                         baosr.compareAndSet(current, new ByteArrayOutputStream());
                         o.write(current.toByteArray());
                     }
-                    else if(!moving.get()) data_available.wait();
+                    else if(!moving.get()) {
+                        Log.d(getClass().getName(),"Waiting for user event...");
+                        data_available.wait();
+                    }
                 }
             }
             catch(Exception e) {
@@ -69,6 +72,7 @@ public class NetworkQueue {
         moving.set(true);
         synchronized(data_available) {
             data_available.notify();
+            Log.d(getClass().getName(),"User event received, polling resumed...");
         }
     }
 
