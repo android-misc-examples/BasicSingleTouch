@@ -10,18 +10,11 @@
 
     <RelativeLayout
         android:id="@+id/relativelayout1"
-        android:layout_weight="70"
+        android:layout_weight="80"
         android:layout_width="fill_parent"
         android:layout_height="0dp">
 
     </RelativeLayout>
-    <Button
-        android:layout_width="fill_parent"
-        android:layout_height="0dp"
-        android:text="Click Here to clear drawing "
-        android:id="@+id/button"
-        android:onClick="resetPath2"
-        android:layout_weight="10" />
 
     <EditText
         android:id="@+id/tlsRemoteHost"

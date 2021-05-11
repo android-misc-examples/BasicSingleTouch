@@ -37,14 +37,12 @@ public class MainActivity extends Activity {
     Path path2;
     Bitmap bitmap;
     Canvas canvas;
-    Button button;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         relativeLayout = findViewById(R.id.relativelayout1);
-        button = findViewById(R.id.button);
         view = new SketchSheetView(MainActivity.this);
         paint = new Paint();
         path2 = new Path();
@@ -59,10 +57,9 @@ public class MainActivity extends Activity {
         paint.setStrokeWidth(6);
     }
 
-    public void resetPath2(View unused) {
+    public void clearCanvas(View unused) {
         path2.reset();
         view.invalidate();
-        System.out.println("RESET");
     }
 
     public void testTls12NoCert(View unused) {
@@ -132,7 +129,7 @@ public class MainActivity extends Activity {
 
             switch (event.getAction())
             {
-                case MotionEvent.ACTION_DOWN: {
+                case MotionEvent.ACTION_DOWN:
 //                    long clickDuration1 = Calendar.getInstance().getTimeInMillis() - startClickTime;
 
 
@@ -142,26 +139,21 @@ public class MainActivity extends Activity {
 
                     path2.moveTo(x1, y1);
                     path2.lineTo(x1, y1);
-
-
                     break;
-
-                }
                 case MotionEvent.ACTION_UP:
-                {
                     long clickDuration = Calendar.getInstance().getTimeInMillis() - startClickTime;
                     x2 = event.getX();
                     y2 = event.getY();
                     dx = x2-x1;
                     dy = y2-y1;
-
                     if(clickDuration < MAX_CLICK_DURATION && dx < MAX_CLICK_DISTANCE && dy < MAX_CLICK_DISTANCE) {
                         Toast.makeText(getApplicationContext(), "clicked", Toast.LENGTH_SHORT).show();
                     }
 
-                }
+                    // always clear canvas
+                    clearCanvas(null);
+                    break;
                 case MotionEvent.ACTION_MOVE:
-
 //                    long clickDuration = Calendar.getInstance().getTimeInMillis() - startClickTime;
                     x2 = event.getX();
                     y2 = event.getY();
@@ -176,7 +168,7 @@ public class MainActivity extends Activity {
             }
             invalidate();
 
-            return  true;
+            return true;
         }
 
         @Override
