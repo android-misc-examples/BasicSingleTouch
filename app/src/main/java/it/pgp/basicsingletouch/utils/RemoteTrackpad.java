@@ -4,6 +4,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 
+import it.pgp.basicsingletouch.MainActivity;
+
 public class RemoteTrackpad {
     enum CODES {
         CONNECT((byte)0x1E),
@@ -23,14 +25,27 @@ public class RemoteTrackpad {
     OutputStream o;
     NetworkQueue Q;
 
-    public void connect(String host) throws Exception {
-        TLSSocketFactoryCompat f = new TLSSocketFactoryCompat("");
-        Socket clientSocket = f.createSocket(host, 11111);
-        i = clientSocket.getInputStream();
-        o = clientSocket.getOutputStream();
-        Q = new NetworkQueue(i,o);
-        Q.start_thread();
-        // TODO update UI true
+    final MainActivity mainActivity;
+
+    public RemoteTrackpad(MainActivity mainActivity) {
+        this.mainActivity = mainActivity;
+    }
+
+    public void connect(String host) {
+        try {
+            TLSSocketFactoryCompat f = new TLSSocketFactoryCompat("");
+            Socket clientSocket = f.createSocket(host, 11111);
+            i = clientSocket.getInputStream();
+            o = clientSocket.getOutputStream();
+            o.write(CODES.CONNECT.i);
+            Q = new NetworkQueue(i,o,mainActivity);
+            mainActivity.runOnUiThread(()-> mainActivity.toggleWidgets(true, host, false));
+            Q.start_thread();
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            mainActivity.runOnUiThread(()->mainActivity.toggleWidgets(false, host, true));
+        }
     }
 
     public void motion_started() {

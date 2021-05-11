@@ -16,13 +16,10 @@ import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Calendar;
 
-import it.pgp.basicsingletouch.utils.TLSSocketFactoryCompat;
+import it.pgp.basicsingletouch.utils.RemoteTrackpad;
 
 /**
  * Web source:
@@ -37,6 +34,10 @@ public class MainActivity extends Activity {
     Path path2;
     Bitmap bitmap;
     Canvas canvas;
+    RemoteTrackpad remoteTrackpad;
+
+    EditText tlsRemoteHost;
+    Button connect_btn, left_click_btn, right_click_btn;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,6 +56,14 @@ public class MainActivity extends Activity {
         paint.setStrokeJoin(Paint.Join.ROUND);
         paint.setStrokeCap(Paint.Cap.ROUND);
         paint.setStrokeWidth(6);
+        remoteTrackpad = new RemoteTrackpad(this);
+
+        tlsRemoteHost = findViewById(R.id.tlsRemoteHost);
+        connect_btn = findViewById(R.id.connect_btn);
+        left_click_btn = findViewById(R.id.left_click_btn);
+        right_click_btn = findViewById(R.id.right_click_btn);
+
+        toggleWidgetsInner(false);
     }
 
     public void clearCanvas(View unused) {
@@ -62,23 +71,34 @@ public class MainActivity extends Activity {
         view.invalidate();
     }
 
-    public void testTls12NoCert(View unused) {
-        final String s = ((EditText)findViewById(R.id.tlsRemoteHost)).getText().toString();
-        new Thread(()->{
-            try {
-                TLSSocketFactoryCompat f = new TLSSocketFactoryCompat("");
-                Socket clientSocket = f.createSocket(s, 11111);
-                InputStream i = clientSocket.getInputStream();
-                OutputStream o = clientSocket.getOutputStream();
-                o.write(new byte[]{0x1F});
-                clientSocket.close();
-                runOnUiThread(()->Toast.makeText(this, "TLS connection test OK for host:"+s, Toast.LENGTH_SHORT).show());
+    public void toggleWidgetsInner(boolean connected) {
+        tlsRemoteHost.setEnabled(!connected);
+        connect_btn.setEnabled(!connected);
+        left_click_btn.setEnabled(connected);
+        right_click_btn.setEnabled(connected);
+    }
+
+    public void toggleWidgets(boolean connected, String host, boolean error) {
+        toggleWidgetsInner(connected);
+        String msg = error?"Unable to connect to ":(connected?"Connected to ":"Disconnected from ");
+        Toast.makeText(this, msg+host, Toast.LENGTH_SHORT).show();
+    }
+
+    public void buttonHandler(View v) {
+        switch(v.getId()) {
+            case R.id.connect_btn:
+            {
+                String s = tlsRemoteHost.getText().toString();
+                new Thread(()-> remoteTrackpad.connect(s)).start();
             }
-            catch (Exception e) {
-                e.printStackTrace();
-                runOnUiThread(()->Toast.makeText(this, "TLS connection test failed for host:"+s, Toast.LENGTH_SHORT).show());
-            }
-        }).start();
+                break;
+            case R.id.left_click_btn:
+                remoteTrackpad.left_click();
+                break;
+            case R.id.right_click_btn:
+                remoteTrackpad.right_click();
+                break;
+        }
     }
 
     public static class DrawingClass {
@@ -139,6 +159,9 @@ public class MainActivity extends Activity {
 
                     path2.moveTo(x1, y1);
                     path2.lineTo(x1, y1);
+
+                    remoteTrackpad.move_cursor((int)x1,(int)y1,true); // TODO
+                    remoteTrackpad.motion_started();
                     break;
                 case MotionEvent.ACTION_UP:
                     long clickDuration = Calendar.getInstance().getTimeInMillis() - startClickTime;
@@ -148,6 +171,7 @@ public class MainActivity extends Activity {
                     dy = y2-y1;
                     if(clickDuration < MAX_CLICK_DURATION && dx < MAX_CLICK_DISTANCE && dy < MAX_CLICK_DISTANCE) {
                         Toast.makeText(getApplicationContext(), "clicked", Toast.LENGTH_SHORT).show();
+                        remoteTrackpad.left_click();
                     }
 
                     // always clear canvas
@@ -164,6 +188,7 @@ public class MainActivity extends Activity {
                     pathWithPaint.setPath(path2);
                     pathWithPaint.setPaint(paint);
                     drawingClassArrayList.add(pathWithPaint);
+                    remoteTrackpad.move_cursor((int)x2,(int)y2,false); // TODO
                     break;
             }
             invalidate();
